@@ -58,7 +58,7 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
   public String getName() {
     return "RNReactNativeDocViewer";
   }
-    
+
   @ReactMethod
   public void openDoc(ReadableArray args, Callback callback) {
       final ReadableMap arg_object = args.getMap(0);
@@ -76,7 +76,7 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
             callback.invoke(e.getMessage());
        }
   }
-    
+
     // used for all downloaded files, so we can find and delete them again.
     private final static String FILE_TYPE_PREFIX = "PP_";
     /**
@@ -163,12 +163,27 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
 
         return mimeType;
     }
-    
+
+    /**
+     *  Check whether device has app to open specific file.
+     *  Source: https://stackoverflow.com/a/2790374
+     */
+    private static boolean canDisplayFile(Context context, mimeType) {
+        PackageManager packageManager = context.getPackageManager();
+        Intent testIntent = new Intent(Intent.ACTION_VIEW);
+        testIntent.setType(mimeType);
+        if (packageManager.queryIntentActivities(testIntent, PackageManager.MATCH_DEFAULT_ONLY).size() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
   private class FileDownloaderAsyncTask extends AsyncTask<Void, Void, File> {
         private final Callback callback;
         private final String url;
         private final String fileName;
-       
+
         public FileDownloaderAsyncTask(Callback callback,
                 String url, String fileName) {
             super();
@@ -200,12 +215,20 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
             if (mimeType == null) {
                 return;
             }
+
+            if(!canDisplayFile(context, mimeType)) {
+              Toast.makeText(getReactApplicationContext(),
+                            "You need to download viewer to open this file.",
+                            Toast.LENGTH_SHORT).show();
+              return;
+            }
+
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setDataAndType(Uri.fromFile(result), mimeType);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
-          
+
                 // Thread-safe.
                 callback.invoke(fileName);
             } catch (ActivityNotFoundException e) {
