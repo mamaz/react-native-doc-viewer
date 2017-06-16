@@ -217,9 +217,8 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
             }
 
             if(!canDisplayFile(context, mimeType)) {
-              Toast.makeText(getReactApplicationContext(),
-                            "You need to download viewer to open this file.",
-                            Toast.LENGTH_SHORT).show();
+              String error = "Can not open file with type" + mimeType;
+              callback.invoke(error);
               return;
             }
 
@@ -235,7 +234,6 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
                 System.out.println("ERROR");
                 System.out.println(e.getMessage());
                 callback.invoke(e.getMessage());
-                //e.printStackTrace();
             }
 
         }
