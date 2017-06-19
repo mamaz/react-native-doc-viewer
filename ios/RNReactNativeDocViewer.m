@@ -31,7 +31,7 @@ RCT_EXPORT_METHOD(testModule:(NSString *)name location:(NSString *)location)
     RCTLogInfo(@"TEST Module %@ at %@", name, location);
 }
 
-RCT_EXPORT_METHOD(openDoc:(NSArray *)array headers:(NSDictionary *)headers callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(openDocHeaders:(NSArray *)array headers:(NSDictionary *)headers callback:(RCTResponseSenderBlock)callback)
 {
     NSDictionary* dict = [array objectAtIndex:0];
     NSString* urlStr = dict[@"url"];
