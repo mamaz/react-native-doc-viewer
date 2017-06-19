@@ -35,6 +35,7 @@ import java.net.URL;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.webkit.CookieManager;
@@ -42,6 +43,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 import android.util.Log;
 import android.webkit.WebView;
+
 
 public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
   public static final int ERROR_NO_HANDLER_FOR_DATA_TYPE = 53;
