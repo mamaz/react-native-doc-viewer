@@ -138,7 +138,8 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
             return null;
         }
     }
-/**
+
+    /**
      * Returns the MIME Type of the file by looking at file name extension in
      * the URL.
      *
