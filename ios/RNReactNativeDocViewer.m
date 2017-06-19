@@ -57,7 +57,7 @@ RCT_EXPORT_METHOD(openDoc:(NSArray *)array headers:(NSDictionary *)headers callb
                                                                    completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error){
                                                 if(!error){
                                                     weakSelf.fileUrl = location;
-                                                    [self openDocument];
+                                                    [self openDocument:weakSelf];
 
                                                     if (callback) {
                                                        callback(@[[NSNull null], array]);
@@ -65,7 +65,7 @@ RCT_EXPORT_METHOD(openDoc:(NSArray *)array headers:(NSDictionary *)headers callb
                                                     return;
                                                 }
                                                 if (callback) {
-                                                    callback(@[[NSNull null], [error localizedDescription]])
+                                                    callback(@[[NSNull null], [error localizedDescription]]);
                                                 }
                                               }];
         [downloadTask resume];
@@ -276,11 +276,11 @@ RCT_EXPORT_METHOD(playMovie:(NSString *)file callback:(RCTResponseSenderBlock)ca
 
 # pragma mark - Open Document
 
-- (void)openDocument
+- (void)openDocument:(id)wSelf
 {
     QLPreviewController* cntr = [[QLPreviewController alloc] init];
-    cntr.delegate = weakSelf;
-    cntr.dataSource = weakSelf;
+    cntr.delegate = wSelf;
+    cntr.dataSource = wSelf;
     UIViewController* root = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     [root presentViewController:cntr animated:YES completion:nil];
 }
