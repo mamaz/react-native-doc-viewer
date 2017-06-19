@@ -165,10 +165,14 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     *  Check whether device has app to open specific file.
+     *  Check whether device has apps to open specific file (eg: pdf reader, doc reader, etc)
      *  Source: https://stackoverflow.com/a/2790374
+     *
+     *  @param context - Context for this app
+     *  @param mimeType - Mime type of the file to be checked
+     *  @return true if app is installed, false otherwise
      */
-    private static boolean canDisplayFile(Context context, mimeType) {
+    private static boolean canDisplayFile(Context context, String mimeType) {
         PackageManager packageManager = context.getPackageManager();
         Intent testIntent = new Intent(Intent.ACTION_VIEW);
         testIntent.setType(mimeType);
@@ -217,7 +221,7 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
             }
 
             if(!canDisplayFile(context, mimeType)) {
-              String error = "Can not open file with type" + mimeType;
+              String error = "Can not open file with type " + mimeType;
               callback.invoke(error);
               return;
             }
@@ -235,7 +239,6 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
                 System.out.println(e.getMessage());
                 callback.invoke(e.getMessage());
             }
-
         }
 
     }
