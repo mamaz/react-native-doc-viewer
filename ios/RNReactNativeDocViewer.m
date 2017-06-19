@@ -7,6 +7,7 @@
 //
 #import "RNReactNativeDocViewer.h"
 #import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 #import <AVKit/AVKit.h>
 #if __has_include("RCTLog.h")
@@ -30,6 +31,49 @@ RCT_EXPORT_METHOD(testModule:(NSString *)name location:(NSString *)location)
     RCTLogInfo(@"TEST Module %@ at %@", name, location);
 }
 
+RCT_EXPORT_METHOD(openDoc:(NSArray *)array headers:(NSDictionary *)headers callback:(RCTResponseSenderBlock)callback)
+{
+    NSDictionary* dict = [array objectAtIndex:0];
+    NSString* urlStr = dict[@"url"];
+    NSString* filename = dict[@"fileName"];
+    NSURL* url = [NSURL URLWithString:[urlStr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+
+    NSString* fileName = [url lastPathComponent];
+    NSString* fileExt = [fileName pathExtension];
+    RCTLogInfo(@"Pretending to create an event at %@", fileExt);
+    if([fileExt length] == 0){
+        fileName = [NSString stringWithFormat:@"%@%@", fileName, @".pdf"];
+    }
+
+    if([urlStr containsString: @"https"]){
+        NSURLSessionConfiguration *defaultConfigObject = [NSURLSessionConfiguration defaultSessionConfiguration];
+        defaultConfigObject.HTTPAdditionalHeaders = headers; // add additional headers
+        NSURLSession *defaultSession = [NSURLSession sessionWithConfiguration:defaultConfigObject
+                                                                 delegate:nil
+                                                            delegateQueue:[NSOperationQueue mainQueue]];
+
+        __weak RNReactNativeDocViewer* weakSelf = self;
+        NSURLSessionDownloadTask *downloadTask = [defaultSession downloadTaskWithURL:url
+                                                                   completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error){
+                                                if(!error){
+                                                    weakSelf.fileUrl = location;
+                                                    [self openDocument];
+
+                                                    if (callback) {
+                                                       callback(@[[NSNull null], array]);
+                                                    }
+                                                    return;
+                                                }
+                                                if (callback) {
+                                                    callback(@[[NSNull null], [error localizedDescription]])
+                                                }
+                                              }];
+        [downloadTask resume];
+    } else {
+        // TODO: file open
+    }
+}
+
 /**
  * openDoc
  * open Base64 String
@@ -37,7 +81,7 @@ RCT_EXPORT_METHOD(testModule:(NSString *)name location:(NSString *)location)
  */
 RCT_EXPORT_METHOD(openDoc:(NSArray *)array callback:(RCTResponseSenderBlock)callback)
 {
-    
+
     __weak RNReactNativeDocViewer* weakSelf = self;
     dispatch_queue_t asyncQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async(asyncQueue, ^{
@@ -78,8 +122,8 @@ RCT_EXPORT_METHOD(openDoc:(NSArray *)array callback:(RCTResponseSenderBlock)call
             NSURL* tmpFileUrl = [[NSURL alloc] initFileURLWithPath:urlStr];
             weakSelf.fileUrl = tmpFileUrl;
         }
-    
-        
+
+
         dispatch_async(dispatch_get_main_queue(), ^{
             QLPreviewController* cntr = [[QLPreviewController alloc] init];
             cntr.delegate = weakSelf;
@@ -90,7 +134,7 @@ RCT_EXPORT_METHOD(openDoc:(NSArray *)array callback:(RCTResponseSenderBlock)call
             UIViewController* root = [[[UIApplication sharedApplication] keyWindow] rootViewController];
             [root presentViewController:cntr animated:YES completion:nil];
         });
-        
+
     });
 }
 
@@ -132,7 +176,7 @@ RCT_EXPORT_METHOD(openDocBinaryinUrl:(NSArray *)array callback:(RCTResponseSende
 
         [dat writeToURL:tmpFileUrl atomically:YES];
         weakSelf.fileUrl = tmpFileUrl;
-        
+
         dispatch_async(dispatch_get_main_queue(), ^{
             QLPreviewController* cntr = [[QLPreviewController alloc] init];
             cntr.delegate = weakSelf;
@@ -143,7 +187,7 @@ RCT_EXPORT_METHOD(openDocBinaryinUrl:(NSArray *)array callback:(RCTResponseSende
             UIViewController* root = [[[UIApplication sharedApplication] keyWindow] rootViewController];
             [root presentViewController:cntr animated:YES completion:nil];
         });
-        
+
     });
 }
 
@@ -154,7 +198,7 @@ RCT_EXPORT_METHOD(openDocBinaryinUrl:(NSArray *)array callback:(RCTResponseSende
  */
 RCT_EXPORT_METHOD(openDocb64:(NSArray *)array callback:(RCTResponseSenderBlock)callback)
 {
-    
+
     __weak RNReactNativeDocViewer* weakSelf = self;
     dispatch_queue_t asyncQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async(asyncQueue, ^{
@@ -180,7 +224,7 @@ RCT_EXPORT_METHOD(openDocb64:(NSArray *)array callback:(RCTResponseSenderBlock)c
 
         [dat writeToURL:tmpFileUrl atomically:YES];
         weakSelf.fileUrl = tmpFileUrl;
-        
+
         dispatch_async(dispatch_get_main_queue(), ^{
             QLPreviewController* cntr = [[QLPreviewController alloc] init];
             cntr.delegate = weakSelf;
@@ -191,7 +235,7 @@ RCT_EXPORT_METHOD(openDocb64:(NSArray *)array callback:(RCTResponseSenderBlock)c
             UIViewController* root = [[[UIApplication sharedApplication] keyWindow] rootViewController];
             [root presentViewController:cntr animated:YES completion:nil];
         });
-        
+
     });
 }
 
@@ -230,6 +274,17 @@ RCT_EXPORT_METHOD(playMovie:(NSString *)file callback:(RCTResponseSenderBlock)ca
   });
 }
 
+# pragma mark - Open Document
+
+- (void)openDocument
+{
+    QLPreviewController* cntr = [[QLPreviewController alloc] init];
+    cntr.delegate = weakSelf;
+    cntr.dataSource = weakSelf;
+    UIViewController* root = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+    [root presentViewController:cntr animated:YES completion:nil];
+}
+
 - (NSInteger) numberOfPreviewItemsInPreviewController: (QLPreviewController *) controller
 {
     return 1;
@@ -247,7 +302,5 @@ RCT_EXPORT_METHOD(playMovie:(NSString *)file callback:(RCTResponseSenderBlock)ca
     return self.fileUrl;
 }
 
-
-
 @end
-  
+
