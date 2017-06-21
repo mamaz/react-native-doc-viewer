@@ -204,6 +204,8 @@ public class RNReactNativeDocViewerModule extends ReactContextBaseJavaModule {
                 return downloadFile(url, callback);
             } else {
                 File file = new File(url.replace("file://", ""));
+                // make sure the receiving app can read this file
+                file.setReadable(true, false);
                 return file;
             }
         }
